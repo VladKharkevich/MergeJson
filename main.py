@@ -2,7 +2,10 @@ import argparse
 import os
 from typing import Dict, List
 
+from loader_from_file.ifileloader import IFileLoader
+from serializers.iserializer import ISerializer
 from settings import settings
+from writers_to_file.ifilewriter import IFileWriter
 
 
 class App:
@@ -13,15 +16,19 @@ class App:
 
     def run(self):
         self._validate_args()
-        current_loader = settings.available_loaders_from_file.get(
+        current_loader: IFileLoader = settings.available_loaders_from_file.get(
             settings.current_loader_format)()
 
         students_data = current_loader.read(self.students_path)
         rooms_data = current_loader.read(self.rooms_path)
         merge_rooms = self._merge_rooms_and_students(students_data, rooms_data)
 
-        print(settings.available_serializers.get(
-            self.output_format)().serialize(merge_rooms))
+        current_serializer: ISerializer = settings.available_serializers.get(
+            self.output_format)()
+        serialized_data = current_serializer.serialize(merge_rooms)
+        text_writer: IFileWriter = settings.available_writers_to_file.get(
+            "text")()
+        text_writer.write(serialized_data, "result", self.output_format)
 
     def _validate_args(self):
         if not os.path.isfile(self.students_path):
