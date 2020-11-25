@@ -2,6 +2,7 @@ import argparse
 import os
 from typing import Dict, List
 
+from argparse_types import ArgparseType
 from loader_from_file.ifileloader import IFileLoader
 from serializers.iserializer import ISerializer
 from settings import settings
@@ -15,7 +16,6 @@ class App:
         self.output_format = argv.format
 
     def run(self):
-        self._validate_args()
         current_loader: IFileLoader = settings.available_loaders_from_file.get(
             settings.current_loader_format)()
 
@@ -30,14 +30,6 @@ class App:
             "text")()
         text_writer.write(serialized_data, "result", self.output_format)
 
-    def _validate_args(self):
-        if not os.path.isfile(self.students_path):
-            raise FileNotFoundError("Путь к файлу студентов некорректен")
-        if not os.path.isfile(self.rooms_path):
-            raise FileNotFoundError("Путь к файлу комнат некорректен")
-        if self.output_format not in settings.available_serializers.keys():
-            raise ValueError("Формат файла некорректен")
-
     def _merge_rooms_and_students(self, students: List[Dict], rooms: List[Dict]) -> List[Dict]:
         for room in rooms:
             room["students"] = []
@@ -51,9 +43,12 @@ class App:
 if __name__ == "__main__":
     # init argument parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("students", help="Path to json file with students")
-    parser.add_argument("rooms", help="Path to json file with rooms")
-    parser.add_argument("format", help="Format of output file")
+    parser.add_argument(
+        "students", help="Path to json file with students", type=ArgparseType.students_filename)
+    parser.add_argument("rooms", help="Path to json file with rooms",
+                        type=ArgparseType.rooms_filename)
+    parser.add_argument("format", help="Format of output file",
+                        type=ArgparseType.file_format)
     args = parser.parse_args()
 
     App(args).run()

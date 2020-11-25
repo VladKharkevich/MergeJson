@@ -3,6 +3,9 @@ from xml.etree import ElementTree
 
 from .iserializer import ISerializer
 
+# xml.etree is not external library!
+# https://docs.python.org/3/library/xml.etree.elementtree.html
+
 
 class XMLSerializer(ISerializer):
     def serialize(self, data) -> str:
